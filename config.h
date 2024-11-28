@@ -1,1 +1,1 @@
-#define SERVER_PORT 4003
+#define SERVER_PORT 4000
