@@ -15,12 +15,11 @@ int server_fd;
 int error;
 
 void* clrecvsend (void* arg) {
+    long int client_fd = (long int) arg;
+    
     while(1) {
-        long int client_fd = (long int) arg;
-
         // 5. send
         char response[BUFSIZ] = {"Bienvenue ! Je suis le serveur!\n"};
-        printf("client fd send: %d\n", client_fd);
         error = send(client_fd, response, strlen(response), 0); perror("send ");
         if(error == -1) return NULL;
         /** 6.  recv
@@ -28,11 +27,14 @@ void* clrecvsend (void* arg) {
          */
         char reponse [BUFSIZ]; memset(reponse, 0, BUFSIZ);
         int reponse_length = recv(client_fd, reponse, BUFSIZ, 0); perror("recv ");
-        if(reponse_length == -1) return NULL;
-        printf ("$%s\n", reponse);
+        if(reponse_length <=0 ) { // Si le recv échoue !
+            // Close the connexion to the client
+            close(client_fd); perror("close");
+            printf("Client disconnected !\n");
+            return NULL;
+        }   
 
-        // Close the connexion to the client
-        close(client_fd); perror("close ");
+        printf ("$%s\n", reponse);
     }
 }
 
@@ -83,14 +85,14 @@ int main () {
     socklen_t len;
     long int client_fd;
 
-    while(client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &len) > 0) {
+    while(1) {
+        client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &len);
         perror ("accept ");
-        printf("accept numero : %d\n", nb_clients);
-        printf("Wait for a client to connect...\n");
         nb_clients++;   
-        printf("client fd before thread: %d\n", client_fd);   
+        printf("accept numero : %d\n", nb_clients);
+        printf("Wait for a client to connect...\n");   
         pthread_create(&thread, NULL, clrecvsend, (void*)client_fd); perror("pthread_create ");
         printf("Thread starts...\n");
     }
-
+return EXIT_SUCCESS;
 }

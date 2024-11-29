@@ -9,17 +9,22 @@
 #include <pthread.h>
 #include "config.h"
 
-#define CLIENT_PORT 4012
+#define DEFAULT_CLIENT_PORT 4011
 
 int client_fd;
+int client_port = DEFAULT_CLIENT_PORT;
 
-int main () {
+int main (int argc, char** argv) {
+
+    if(argc >1){
+        client_port = atoi(argv[1]);
+    }
 
     client_fd = socket(AF_INET, SOCK_STREAM, 0); perror("socket");
     struct sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_addr.s_addr = INADDR_ANY, 
-        .sin_port = htons (CLIENT_PORT),
+        .sin_port = htons (client_port),
     };
 
     bind(client_fd, (struct sockaddr*) &addr, sizeof(addr));perror("bind");
@@ -32,19 +37,20 @@ int main () {
 
     connect(client_fd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));perror("connect");
     
-    char buf_reponse[BUFSIZ]; memset(buf_reponse, 0, BUFSIZ);
-    recv(client_fd, buf_reponse, sizeof(buf_reponse) -1, 0); perror("receive");
-    printf("%s\n", buf_reponse);
+    while (1) {
+        char buf_reponse[BUFSIZ]; memset(buf_reponse, 0, BUFSIZ);
+        recv(client_fd, buf_reponse, sizeof(buf_reponse) -1, 0); perror("receive");
+        printf("%s\n", buf_reponse);
 
-    char reponse [BUFSIZ]; memset(reponse, 0, BUFSIZ);
-    // strcpy(reponse,"Bonjour! Je suis le client 1\n");
-    fgets(reponse, BUFSIZ, stdin);
-    int error = send(client_fd, reponse, strlen(reponse), 0); perror("send");
-       if(error == -1) {
-        close(client_fd); return EXIT_FAILURE;
+        char reponse [BUFSIZ]; memset(reponse, 0, BUFSIZ);
+        // strcpy(reponse,"Bonjour! Je suis le client 1\n");
+        fgets(reponse, BUFSIZ, stdin);
+        int error = send(client_fd, reponse, strlen(reponse), 0); perror("send");
+        if(error == -1) {
+            close(client_fd); return EXIT_FAILURE;
+        }
     }
-   
 
-    close(client_fd);
+    close(client_fd); perror("close ");
 
 }
