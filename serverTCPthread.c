@@ -18,17 +18,17 @@ void* clrecvsend (void* arg) {
     long int client_fd = (long int) arg;
     
     while(1) {
-        // 5. send
+        // 4. send
         char response[BUFSIZ] = {"Bienvenue ! Je suis le serveur!\n"};
         error = send(client_fd, response, strlen(response), 0); perror("send ");
         if(error == -1) return NULL;
-        /** 6.  recv
+        /** 5.  recv
          * Lecture du file descriptor en boucle pour recevoir les requete client
          */
         char reponse [BUFSIZ]; memset(reponse, 0, BUFSIZ);
         int reponse_length = recv(client_fd, reponse, BUFSIZ, 0); perror("recv ");
         if(reponse_length <=0 ) { // Si le recv échoue !
-            // Close the connexion to the client
+            //6. Close the connexion to the client
             close(client_fd); perror("close");
             printf("Client disconnected !\n");
             return NULL;
